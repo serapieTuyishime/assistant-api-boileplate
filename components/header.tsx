@@ -2,8 +2,8 @@ import { Button } from '@/components/ui/button'
 import { Sidebar } from '@/components/sidebar'
 import { IconSeparator } from '@/components/ui/icons'
 import CreateAssistant from './custom/create-assistant'
-import CreateThread from './custom/create-user-thread'
 import { Suspense } from 'react'
+import { ClearThread, CreateThread } from './custom/create-user-thread'
 
 export async function Header() {
   return (
@@ -15,6 +15,9 @@ export async function Header() {
           ></Suspense>
           <Button variant="link" asChild className="-ml-2">
             <CreateThread />
+          </Button>
+          <Button variant="link" asChild className="-ml-2">
+            <ClearThread />
           </Button>
         </Sidebar>
         <div className="flex items-center">

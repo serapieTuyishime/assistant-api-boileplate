@@ -1,24 +1,20 @@
-import { useEffect, useState } from 'react'
-
-export const useLocalStorage = <T>(
-  key: string,
-  initialValue: T
-): [T, (value: T) => void] => {
-  const [storedValue, setStoredValue] = useState(initialValue)
-
-  useEffect(() => {
-    // Retrieve from localStorage
-    const item = window.localStorage.getItem(key)
-    if (item) {
-      setStoredValue(JSON.parse(item))
-    }
-  }, [key])
-
-  const setValue = (value: T) => {
-    // Save state
-    setStoredValue(value)
-    // Save to localStorage
+export const useLocalStorage = (): {
+  setValue: (key: string, value: string) => void
+  clearAssistant: () => void
+  getValue: (key: string) => string
+} => {
+  const setValue = (key: string, value: string) => {
     window.localStorage.setItem(key, JSON.stringify(value))
   }
-  return [storedValue, setValue]
+
+  const getValue = (key: string) => {
+    const value = localStorage.getItem(key)
+    return value ? JSON.parse(value) : ''
+  }
+  const clearAssistant = () => {
+    window.localStorage.setItem('the_math_teacher_assistant', '')
+    window.localStorage.setItem('the_math_teacher_thread', '')
+    window.localStorage.setItem('assistant_api_key', '')
+  }
+  return { setValue, clearAssistant, getValue }
 }

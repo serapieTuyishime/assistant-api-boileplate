@@ -2,6 +2,7 @@ import { openai } from '@/config/openai'
 import { Message } from 'ai'
 import { Assistant } from 'openai/resources/beta/assistants/assistants'
 import { useEffect, useState } from 'react'
+import { useLocalStorage } from './use-local-storage'
 
 export type CustomMessage = Message & {
   createdAt: Date
@@ -12,6 +13,8 @@ export function useOpenAi() {
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<CustomMessage[]>([])
   const [assistant, setAssistant] = useState<Assistant>()
+  const [assistantId, setAssistantID] = useState<string>('')
+  const { getValue } = useLocalStorage()
   const createRun = async () => {
     setLoading(true)
     try {
@@ -56,24 +59,9 @@ export function useOpenAi() {
 
   async function getAssistant() {
     try {
-      const assistantFromLocalStorage = localStorage.getItem(
-        'the_math_teacher_assistant'
-      )
-      let assistant
-      if (assistantFromLocalStorage) {
-        const localObject = await JSON.parse(assistantFromLocalStorage)
-        assistant = localObject
-      } else {
-        const myAssistant = await openai.beta.assistants.retrieve(
-          'asst_3Jol7xISnUlSRV1sFe5NFnuL'
-        )
-        localStorage.setItem(
-          'the_math_teacher_assistant',
-          JSON.stringify(myAssistant)
-        )
-        assistant = myAssistant
-      }
-      setAssistant(assistant)
+      //this will store the assistant id
+      const assistantFromLocalStorage = getValue('the_math_teacher_assistant')
+      return assistantFromLocalStorage
     } catch (err) {
       return
     }
@@ -160,6 +148,7 @@ export function useOpenAi() {
     appendMessage,
     getThreads,
     assistant,
+    assistantId,
     retrieveMessagesByThread
   }
 }
