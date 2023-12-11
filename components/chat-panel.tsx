@@ -3,32 +3,19 @@ import { type UseChatHelpers } from 'ai/react'
 import { Button } from '@/components/ui/button'
 import { PromptForm } from '@/components/prompt-form'
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
-import { IconRefresh, IconStop } from '@/components/ui/icons'
-import { FooterText } from '@/components/footer'
+import { IconStop } from '@/components/ui/icons'
 
 export interface ChatPanelProps
-  extends Pick<
-    UseChatHelpers,
-    | 'append'
-    | 'isLoading'
-    | 'reload'
-    | 'messages'
-    | 'stop'
-    | 'input'
-    | 'setInput'
-  > {
+  extends Pick<UseChatHelpers, 'append' | 'isLoading' | 'input' | 'setInput'> {
   id?: string
 }
 
 export function ChatPanel({
   id,
   isLoading,
-  stop,
   append,
-  reload,
   input,
-  setInput,
-  messages
+  setInput
 }: ChatPanelProps) {
   return (
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
@@ -60,7 +47,6 @@ export function ChatPanel({
             setInput={setInput}
             isLoading={isLoading}
           />
-          {/* <FooterText className="hidden sm:block" /> */}
         </div>
       </div>
     </div>

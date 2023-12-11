@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
@@ -35,7 +35,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   )
   const [previewTokenDialog, setPreviewTokenDialog] = useState(IS_PREVIEW)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
-  const { reload, stop, isLoading, input, setInput } = useChat({
+  const { isLoading, input, setInput } = useChat({
     initialMessages,
     id,
     body: {
@@ -72,10 +72,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       <ChatPanel
         id={id}
         isLoading={isLoading}
-        stop={stop}
         append={onFormSubmit as any}
-        reload={reload}
-        messages={messages}
         input={input}
         setInput={setInput}
       />

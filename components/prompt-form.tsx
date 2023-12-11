@@ -1,5 +1,4 @@
 import { UseChatHelpers } from 'ai/react'
-import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -13,6 +12,7 @@ import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { useOpenAi } from '@/lib/hooks/useOpenAi'
+import { useEffect, useRef } from 'react'
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
@@ -27,11 +27,11 @@ export function PromptForm({
   isLoading
 }: PromptProps) {
   const { formRef, onKeyDown } = useEnterSubmit()
-  const inputRef = React.useRef<HTMLTextAreaElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
   const { appendMessage } = useOpenAi()
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus()
     }
