@@ -16,10 +16,11 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
+import { useOpenAi } from '@/lib/hooks/useOpenAi'
 
 const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 export interface ChatProps extends React.ComponentProps<'div'> {
@@ -34,24 +35,32 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   )
   const [previewTokenDialog, setPreviewTokenDialog] = useState(IS_PREVIEW)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
-  const { messages, append, reload, stop, isLoading, input, setInput } =
-    useChat({
-      initialMessages,
+  const { reload, stop, isLoading, input, setInput } = useChat({
+    initialMessages,
+    id,
+    body: {
       id,
-      body: {
-        id,
-        previewToken
-      },
-      onResponse(response) {
-        if (response.status === 401) {
-          toast.error(response.statusText)
-        }
+      previewToken
+    },
+    onResponse(response) {
+      appendResult()
+      if (response.status === 401) {
+        toast.error(response.statusText)
       }
-    })
+    }
+  })
+
+  const { onFormSubmit, messages, appendMessage } = useOpenAi()
+
+  const appendResult = async () => {
+    console.log('the message is heere')
+    await appendMessage({ role: 'assistant', content: input })
+  }
+
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
-        {messages.length ? (
+        {messages?.length ? (
           <>
             <ChatList messages={messages} />
             <ChatScrollAnchor trackVisibility={isLoading} />
@@ -64,7 +73,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         id={id}
         isLoading={isLoading}
         stop={stop}
-        append={append}
+        append={onFormSubmit as any}
         reload={reload}
         messages={messages}
         input={input}

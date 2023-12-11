@@ -4,8 +4,7 @@ import { Configuration, OpenAIApi } from 'openai-edge'
 const configuration = {
   apiKey: process.env.OPENAI_API_KEY
 }
-
 export const openai = new OpenAI({
-  apiKey: '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',
+  apiKey: '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',
   dangerouslyAllowBrowser: true
 })
