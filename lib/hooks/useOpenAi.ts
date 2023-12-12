@@ -10,12 +10,13 @@ export type CustomMessage = Message & {
 }
 
 const thread_id = 'thread_eznxPsCmoTeOKfALK8YgJHG8'
-// const assistant_id = 'asst_3Jol7xISnUlSRV1sFe5NFnuL'
+const apiKey = '------YOUR OPENAI KEY HERE---------'
+
 export function useOpenAi() {
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<CustomMessage[]>([])
   const [assistant, setAssistant] = useState<Assistant | null>()
-  const { setValue, assistantId, clearAssistant, apiKey } = useLocalStorage()
+  const { setValue, assistantId, clearAssistant } = useLocalStorage()
 
   const openai = new OpenAI({
     apiKey,
@@ -144,7 +145,9 @@ export function useOpenAi() {
       return
     }
     const run_id = await createRun()
-    await checkRunStatus(run_id as string)
+
+    // TODO: check the reason why the run is not returning anything
+    if (run_id) await checkRunStatus(run_id as string)
   }
 
   const createThread = async () => {
@@ -157,11 +160,6 @@ export function useOpenAi() {
     setAssistant(null)
     clearAssistant()
   }, [])
-
-  useEffect(() => {
-    // if (assistantId && apiKey) fetchAssistant(assistantId)
-    console.log('initially loading')
-  }, [assistantId, fetchAssistant, clearAll, apiKey])
 
   return {
     loading,

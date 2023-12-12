@@ -52,7 +52,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [userInput, setUserInput] = useState('')
   const [assistant_id, setAssistant_id] = useState('')
-  const { apiKey, assistantId } = useLocalStorage()
+  const { assistantId } = useLocalStorage()
 
   const handleSave = async () => {
     assistant_id && (await fetchAssistant(assistant_id))
@@ -60,8 +60,8 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     setIsDialogOpen(false)
   }
   useEffect(() => {
-    setIsDialogOpen(Boolean(!apiKey || !assistantId))
-  }, [apiKey, assistantId])
+    setIsDialogOpen(Boolean(!assistantId))
+  }, [assistantId])
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
@@ -98,22 +98,16 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
               environments so that the open source community can test the app.
               The token will be saved to your browser&apos;s local storage under
               the name <code className="font-mono">ai-token</code>.
+              asst_3Jol7xISnUlSRV1sFe5NFnuL ---
+              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
             </DialogDescription>
           </DialogHeader>
-          {!apiKey && (
-            <Input
-              value={userInput}
-              placeholder="OpenAI API key"
-              onChange={e => setUserInput(e.target.value)}
-            />
-          )}
-          {!assistantId && (
-            <Input
-              value={assistant_id}
-              placeholder="OpenAI assistant id"
-              onChange={e => setAssistant_id(e.target.value)}
-            />
-          )}
+
+          <Input
+            value={assistant_id}
+            placeholder="OpenAI assistant id"
+            onChange={e => setAssistant_id(e.target.value)}
+          />
           <DialogFooter className="items-center">
             <Button onClick={handleSave}>Save Token</Button>
           </DialogFooter>

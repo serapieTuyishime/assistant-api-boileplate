@@ -18,10 +18,11 @@ export const useLocalStorage = (): {
     const JsonValue = await JSON.parse(value)
     return JsonValue
   }
+
   const clearAssistant = () => {
     window.localStorage.setItem('the_assistant_id', '')
-    window.localStorage.setItem('the_math_teacher_thread', '')
     window.localStorage.setItem('assistant_api_key', '')
+    window.localStorage.setItem('the_math_teacher_thread', '')
   }
 
   React.useEffect(() => {
