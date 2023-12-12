@@ -43,20 +43,25 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     }
   })
 
-  const { onFormSubmit, messages, appendMessage, assistantId } = useOpenAi()
+  const { onFormSubmit, messages, appendMessage, fetchAssistant, testApiKey } =
+    useOpenAi()
 
   const appendResult = async () => {
     await appendMessage({ role: 'assistant', content: input })
   }
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [userInput, setUserInput] = useState('')
-  const { getValue, setValue } = useLocalStorage()
+  const [assistant_id, setAssistant_id] = useState('')
+  const { apiKey, assistantId } = useLocalStorage()
 
+  const handleSave = async () => {
+    assistant_id && (await fetchAssistant(assistant_id))
+    userInput && (await testApiKey(userInput))
+    setIsDialogOpen(false)
+  }
   useEffect(() => {
-    const localApiKey = getValue('assistant_api_key')
-    setUserInput(localApiKey)
-    setIsDialogOpen(Boolean(!localApiKey && assistantId))
-  }, [])
+    setIsDialogOpen(Boolean(!apiKey || !assistantId))
+  }, [apiKey, assistantId])
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
@@ -77,47 +82,42 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         setInput={setInput}
       />
       {/* TODO: open the mmodal when there is no api key */}
-      <Dialog
-        open={isDialogOpen}
-        onOpenChange={() => console.log('chaning the api key')}
-      >
-        {true ? (
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Enter your OpenAI Key</DialogTitle>
-              <DialogDescription>
-                If you have not obtained your OpenAI API key, you can do so by{' '}
-                <a
-                  href="https://platform.openai.com/signup/"
-                  className="underline"
-                >
-                  signing up
-                </a>{' '}
-                on the OpenAI website. This is only necessary for preview
-                environments so that the open source community can test the app.
-                The token will be saved to your browser&apos;s local storage
-                under the name <code className="font-mono">ai-token</code>.
-              </DialogDescription>
-            </DialogHeader>
+      <Dialog open={isDialogOpen} onOpenChange={() => setIsDialogOpen(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter your OpenAI Key</DialogTitle>
+            <DialogDescription>
+              If you have not obtained your OpenAI API key, you can do so by{' '}
+              <a
+                href="https://platform.openai.com/signup/"
+                className="underline"
+              >
+                signing up
+              </a>{' '}
+              on the OpenAI website. This is only necessary for preview
+              environments so that the open source community can test the app.
+              The token will be saved to your browser&apos;s local storage under
+              the name <code className="font-mono">ai-token</code>.
+            </DialogDescription>
+          </DialogHeader>
+          {!apiKey && (
             <Input
               value={userInput}
               placeholder="OpenAI API key"
               onChange={e => setUserInput(e.target.value)}
             />
-            <DialogFooter className="items-center">
-              <Button
-                onClick={() => {
-                  setValue('assistant_api_key', userInput)
-                  setIsDialogOpen(false)
-                }}
-              >
-                Save Token
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        ) : (
-          <></>
-        )}
+          )}
+          {!assistantId && (
+            <Input
+              value={assistant_id}
+              placeholder="OpenAI assistant id"
+              onChange={e => setAssistant_id(e.target.value)}
+            />
+          )}
+          <DialogFooter className="items-center">
+            <Button onClick={handleSave}>Save Token</Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   )

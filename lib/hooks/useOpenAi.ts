@@ -1,25 +1,65 @@
-import { openai } from '@/config/openai'
+'use client'
 import { Message } from 'ai'
 import { Assistant } from 'openai/resources/beta/assistants/assistants'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useLocalStorage } from './use-local-storage'
+import OpenAI from 'openai'
 
 export type CustomMessage = Message & {
   createdAt: Date
 }
+
 const thread_id = 'thread_eznxPsCmoTeOKfALK8YgJHG8'
-const assistant_id = 'asst_3Jol7xISnUlSRV1sFe5NFnuL'
+// const assistant_id = 'asst_3Jol7xISnUlSRV1sFe5NFnuL'
 export function useOpenAi() {
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<CustomMessage[]>([])
-  const [assistant, setAssistant] = useState<Assistant>()
-  const [assistantId, setAssistantID] = useState<string>('')
-  const { getValue } = useLocalStorage()
+  const [assistant, setAssistant] = useState<Assistant | null>()
+  const { setValue, assistantId, clearAssistant, apiKey } = useLocalStorage()
+
+  const openai = new OpenAI({
+    apiKey,
+    dangerouslyAllowBrowser: true
+  })
+
+  const testApiKey = async (apiKey: string) => {
+    const url = 'https://api.openai.com/v1/chat/completions'
+    const headers = {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    }
+    const data = {
+      model: 'gpt-3.5-turbo',
+      temperature: 0.7,
+      messages: [
+        { role: 'user', content: "Translate 'Hello, world!' into French." }
+      ]
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(data)
+      })
+
+      if (response.ok) {
+        const responseData = await response.json()
+        // ApiKey in localStorage.
+        setValue('assistant_api_key', apiKey)
+      } else {
+        console.log('Failed to connect. Status Code:', response.status)
+      }
+    } catch (error) {
+      console.log('An error occurred:', error)
+    }
+  }
+
   const createRun = async () => {
     setLoading(true)
     try {
       const run = await openai.beta.threads.runs.create(thread_id, {
-        assistant_id: assistant_id,
+        assistant_id: assistantId,
         instructions:
           'Please address the user as Jane Doe. The user has a premium account.'
       })
@@ -32,7 +72,7 @@ export function useOpenAi() {
     }
   }
 
-  const sanitizeRunData = async () => {
+  const loadMessages = async () => {
     const { data } = await retrieveMessagesByThread()
     const theMessage: CustomMessage[] = []
     data.forEach(({ content, role, id, created_at }) => {
@@ -57,32 +97,19 @@ export function useOpenAi() {
     setMessages(theMessage)
   }
 
-  async function getAssistant() {
+  const fetchAssistant = useCallback(async (id: string) => {
+    console.log('being called heer')
     try {
-      //this will store the assistant id
-      const assistantFromLocalStorage = getValue('the_math_teacher_assistant')
-      return assistantFromLocalStorage
+      const assistant = await openai.beta.assistants.retrieve(id)
+      if (!assistant) return
+      // store the assistant on the state and its id on local storage
+      setAssistant(() => assistant)
+      setValue('the_assistant_id', assistant.id)
     } catch (err) {
       return
     }
-  }
+  }, [])
 
-  async function createAssistant() {
-    const myAssistant = await openai.beta.assistants.create({
-      instructions:
-        'You are a personal math tutor. When asked a question, write and run Python code to answer the question.',
-      name: 'Math Tutor',
-      tools: [{ type: 'code_interpreter' }],
-      model: 'gpt-4'
-    })
-    localStorage.setItem(
-      'the_math_teacher_assistant',
-      JSON.stringify(myAssistant)
-    )
-    return myAssistant
-  }
-
-  let count = 0
   const checkRunStatus = async (run_id: string) => {
     const { data } = await openai.beta.threads.runs.steps.list(
       thread_id,
@@ -90,32 +117,24 @@ export function useOpenAi() {
     )
     // wait 3 seconds and check the run status again
     const completedSteps = data.find(step => step.status === 'completed')
-    count++
 
     if (completedSteps) {
-      console.log('called this many times before results', count)
-      await sanitizeRunData()
+      await loadMessages()
     } else {
       setTimeout(() => {
         checkRunStatus(run_id)
       }, 3000)
     }
   }
-  const getThreads = async () => {
-    const localThreads = localStorage.getItem('the_math_teacher_thread')
-    if (localThreads) return await JSON.parse(localThreads)
-    else return createThread()
-  }
 
   const appendMessage = async (message: any) => {
-    let thread = await getThreads()
-    await openai.beta.threads.messages.create(thread.id, message)
+    setMessages(prev => [...prev, message])
+    await openai.beta.threads.messages.create(thread_id, message)
     return
   }
 
   const retrieveMessagesByThread = async () => {
-    let thread = await getThreads()
-    const threadMessages = await openai.beta.threads.messages.list(thread.id)
+    const threadMessages = await openai.beta.threads.messages.list(thread_id)
     return threadMessages
   }
 
@@ -130,25 +149,30 @@ export function useOpenAi() {
 
   const createThread = async () => {
     const thread = await openai.beta.threads.create()
-    localStorage.setItem('the_math_teacher_thread', JSON.stringify(thread))
+    setValue('the_math_teacher_thread', JSON.stringify(thread))
     return thread
   }
 
-  useEffect(() => {
-    getAssistant()
-    sanitizeRunData()
+  const clearAll = useCallback(() => {
+    setAssistant(null)
+    clearAssistant()
   }, [])
+
+  useEffect(() => {
+    // if (assistantId && apiKey) fetchAssistant(assistantId)
+    console.log('initially loading')
+  }, [assistantId, fetchAssistant, clearAll, apiKey])
 
   return {
     loading,
     onFormSubmit,
     messages,
-    getAssistant,
-    createAssistant,
-    appendMessage,
-    getThreads,
     assistant,
-    assistantId,
-    retrieveMessagesByThread
+    appendMessage,
+    fetchAssistant,
+    retrieveMessagesByThread,
+    testApiKey,
+    createThread,
+    clearAll
   }
 }
