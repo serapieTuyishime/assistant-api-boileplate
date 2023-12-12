@@ -19,7 +19,7 @@ export function useOpenAi() {
   const { setValue, assistantId, clearAssistant } = useLocalStorage()
 
   const openai = new OpenAI({
-    apiKey,
+    apiKey: process.env.NEXT_PUBLIC_API_KEY,
     dangerouslyAllowBrowser: true
   })
 
@@ -166,6 +166,7 @@ export function useOpenAi() {
     onFormSubmit,
     messages,
     assistant,
+    loadMessages,
     appendMessage,
     fetchAssistant,
     retrieveMessagesByThread,

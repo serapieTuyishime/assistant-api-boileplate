@@ -43,8 +43,14 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     }
   })
 
-  const { onFormSubmit, messages, appendMessage, fetchAssistant, testApiKey } =
-    useOpenAi()
+  const {
+    onFormSubmit,
+    messages,
+    appendMessage,
+    fetchAssistant,
+    testApiKey,
+    loadMessages
+  } = useOpenAi()
 
   const appendResult = async () => {
     await appendMessage({ role: 'assistant', content: input })
@@ -60,6 +66,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     setIsDialogOpen(false)
   }
   useEffect(() => {
+    if (assistantId) loadMessages()
     setIsDialogOpen(Boolean(!assistantId))
   }, [assistantId])
   return (
@@ -99,7 +106,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
               The token will be saved to your browser&apos;s local storage under
               the name <code className="font-mono">ai-token</code>.
               asst_3Jol7xISnUlSRV1sFe5NFnuL ---
-              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
             </DialogDescription>
           </DialogHeader>
 
