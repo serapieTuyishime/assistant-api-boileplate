@@ -106,7 +106,6 @@ export function useOpenAi() {
     })
 
     setMessages(theMessage)
-    console.log('message loaded')
   }
 
   const fetchAssistant = useCallback(async (id: string) => {
