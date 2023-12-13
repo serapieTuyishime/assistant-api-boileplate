@@ -16,7 +16,9 @@ export function useOpenAi() {
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<CustomMessage[]>([])
   const [assistant, setAssistant] = useState<Assistant | null>()
-  const { setValue, assistantId, clearAssistant } = useLocalStorage()
+  const [currentThread, setCurrentThread] = useState<string>('')
+  const [run, setRun] = useState<string>('')
+  const { setValue, assistantId, clearAssistant, thread } = useLocalStorage()
 
   const openai = new OpenAI({
     apiKey: process.env.NEXT_PUBLIC_API_KEY,
@@ -59,12 +61,16 @@ export function useOpenAi() {
   const createRun = async () => {
     setLoading(true)
     try {
-      const run = await openai.beta.threads.runs.create(thread_id, {
-        assistant_id: assistantId,
+      if (!assistant) {
+        console.log('No assistant found')
+        return
+      }
+      const run = await openai.beta.threads.runs.create(currentThread, {
+        assistant_id: assistant.id,
         instructions:
           'Please address the user as Jane Doe. The user has a premium account.'
       })
-
+      setRun(run.id)
       return run.id
     } catch (Err) {
       console.error('error within run')
@@ -79,6 +85,10 @@ export function useOpenAi() {
   }
 
   const loadMessages = async () => {
+    if (!currentThread) {
+      console.log('There is no thead')
+      return
+    }
     const { data } = await retrieveMessagesByThread()
     const theMessage: CustomMessage[] = []
     data.forEach(({ content, role, id, created_at }) => {
@@ -104,7 +114,6 @@ export function useOpenAi() {
   }
 
   const fetchAssistant = useCallback(async (id: string) => {
-    console.log('being called heer')
     try {
       const assistant = await openai.beta.assistants.retrieve(id)
       if (!assistant) return
@@ -116,51 +125,91 @@ export function useOpenAi() {
     }
   }, [])
 
-  const checkRunStatus = async (run_id: string) => {
-    const { data } = await openai.beta.threads.runs.steps.list(
-      thread_id,
-      run_id
-    )
-    // wait 3 seconds and check the run status again
-    const completedSteps = data.find(step => step.status === 'completed')
+  const checkForRunningSteps = async () => {
+    console.log('the checking for run status', {
+      currentThread,
+      run,
+      assistantId,
+      mine: assistant?.id
+    })
 
-    if (completedSteps) {
+    if (!run) return
+    const { data } = await openai.beta.threads.runs.steps.list(
+      currentThread,
+      run
+    )
+    console.log('the run data', run)
+    const inProgressSteps = data.find(step => step.status === 'in_progress')
+    return Boolean(inProgressSteps)
+  }
+
+  const checkRunStatus = async (run_id: string) => {
+    let foundRun
+    try {
+      foundRun = await openai.beta.threads.runs.retrieve(currentThread, run_id)
+    } catch (err) {
+      console.warn('Error within retrieving the run', err)
+      return
+    }
+
+    if (foundRun.status === 'completed') {
       await loadMessages()
     } else {
       setTimeout(() => {
         checkRunStatus(run_id)
-      }, 3000)
+      }, 4000)
     }
   }
 
   const appendMessage = async (message: any) => {
-    setMessages(prev => [...prev, message])
-    await openai.beta.threads.messages.create(thread_id, message)
+    // setMessages(prev => [...prev, message])
+    console.log('appending the message', { message, currentThread, assistant })
+    if (!currentThread || !assistant) return
+    await openai.beta.threads.messages.create(currentThread, message)
     return
   }
 
   const onFormSubmit = async () => {
+    if (!assistant) {
+      console.log('there is no assistant', assistant)
+      return
+    }
+    if (!currentThread) {
+      await createThread()
+    }
     if (loading) {
       console.log('there is still a run in progress')
       return
     }
     const run_id = await createRun()
-
+    console.log('the run returned', run_id)
     // TODO: check the reason why the run is not returning anything
     if (run_id) await checkRunStatus(run_id as string)
   }
 
   const createThread = async () => {
-    const thread = await openai.beta.threads.create()
-    setValue('the_math_teacher_thread', JSON.stringify(thread))
-    return thread
+    const newThread = await openai.beta.threads.create()
+    if (newThread) {
+      setCurrentThread(newThread.id)
+      setValue('the_assistant_thread', newThread.id)
+      return newThread
+    } else {
+      return
+    }
   }
-
   const clearAll = useCallback(() => {
     setAssistant(null)
     clearAssistant()
   }, [])
 
+  const loadAssistant = async () => {
+    await loadMessages()
+    await fetchAssistant(assistantId)
+  }
+
+  useEffect(() => {
+    if (assistantId && !assistant) loadAssistant()
+  }, [assistantId, assistant])
   return {
     loading,
     onFormSubmit,

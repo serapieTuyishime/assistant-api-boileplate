@@ -46,7 +46,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     messages,
     appendMessage,
     fetchAssistant,
-    testApiKey,
     loadMessages
   } = useOpenAi()
 
@@ -54,16 +53,15 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     await appendMessage({ role: 'assistant', content: input })
   }
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [userInput, setUserInput] = useState('')
   const [assistant_id, setAssistant_id] = useState('')
   const assistantId = localStorage.getItem('the_assistant_id')
   console.log(assistantId)
 
   const handleSave = async () => {
     assistant_id && (await fetchAssistant(assistant_id))
-    userInput && (await testApiKey(userInput))
     setIsDialogOpen(false)
   }
+
   useEffect(() => {
     if (assistantId !== '') loadMessages()
     setIsDialogOpen(Boolean(!assistantId))
