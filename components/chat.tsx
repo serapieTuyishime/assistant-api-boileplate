@@ -57,6 +57,16 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     setIsDialogOpen(false)
   }
 
+  const initPage =
+    /**
+     * 1. Chech for an assistant from local storage if its there then load the assistant and put it on the state of the hook. If no assistant then open the modal and then close.
+     * 2. Modal is done then save the thing on local storage and then hit the process again.  we do it the she-partner way
+     * 3. if there is assistant, then check for the thread on local storage, and hit the retrieve thread from last time and if no thread, create one which will put it on the hook state by default.
+     *
+     * @date 12/13/2023 - 12:00:30 PM
+     */
+    () => {}
+
   useEffect(() => {
     setIsDialogOpen(Boolean(!assistantId))
   }, [assistantId])

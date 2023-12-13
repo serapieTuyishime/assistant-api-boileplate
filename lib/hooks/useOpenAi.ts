@@ -85,6 +85,7 @@ export function useOpenAi() {
       return
     }
     const { data } = await retrieveMessagesByThread()
+    console.log('the messages on', data)
     const theMessage: CustomMessage[] = []
     data.forEach(({ content, role, id, created_at }) => {
       content.forEach((contentItem: any) => {
@@ -120,24 +121,6 @@ export function useOpenAi() {
     }
   }, [])
 
-  const checkForRunningSteps = async () => {
-    console.log('the checking for run status', {
-      currentThread,
-      run,
-      assistantId,
-      mine: assistant?.id
-    })
-
-    if (!run) return
-    const { data } = await openai.beta.threads.runs.steps.list(
-      currentThread,
-      run
-    )
-    console.log('the run data', run)
-    const inProgressSteps = data.find(step => step.status === 'in_progress')
-    return Boolean(inProgressSteps)
-  }
-
   const checkRunStatus = async (run_id: string) => {
     let foundRun
     try {
@@ -158,15 +141,29 @@ export function useOpenAi() {
 
   const appendMessage = async (message: any) => {
     // setMessages(prev => [...prev, message])
-    console.log('appending the message', { message, currentThread, assistant })
-    if (!currentThread || !assistant) return
-    await openai.beta.threads.messages.create(currentThread, message)
+    let thread_id = currentThread
+    if (!currentThread) {
+      const thread = await createThread()
+      if (!thread) return
+      thread_id = thread.id
+    }
+
+    console.log('appending the message', {
+      message,
+      currentThread,
+      assistant,
+      thread_id
+    })
+
+    if (!thread_id || !assistant) return
+    const data = await openai.beta.threads.messages.create(thread_id, message)
+    console.log('data returdedn from appening the messages, data', data)
     return
   }
 
   const retrieveMessagesByThread = async () => {
     const threadMessages = await openai.beta.threads.messages.list(
-      currentThread
+      'thread_FKOaDwOo52dtdCPJmvE28x2R'
     )
     return threadMessages
   }
@@ -176,15 +173,13 @@ export function useOpenAi() {
       console.log('there is no assistant', assistant)
       return
     }
-    if (!currentThread) {
-      await createThread()
-    }
+
     if (loading) {
       console.log('there is still a run in progress')
       return
     }
+
     const run_id = await createRun()
-    console.log('the run returned', run_id)
     // TODO: check the reason why the run is not returning anything
     if (run_id) await checkRunStatus(run_id as string)
   }
