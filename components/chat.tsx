@@ -5,9 +5,7 @@ import { useChat, type Message } from 'ai/react'
 import { cn } from '@/lib/utils'
 import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
-import { EmptyScreen } from '@/components/empty-screen'
 import { ChatScrollAnchor } from '@/components/chat-scroll-anchor'
-import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import {
   Dialog,
   DialogContent,
@@ -50,7 +48,8 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   }
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [assistant_id, setAssistant_id] = useState('')
-  const { assistantId } = useLocalStorage()
+  const assistantId = localStorage.getItem('the_assistant_id')
+  console.log(assistantId)
 
   const handleSave = async () => {
     assistant_id && (await fetchAssistant(assistant_id))
@@ -74,14 +73,8 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
-        {messages?.length ? (
-          <>
-            <ChatList messages={messages} />
-            <ChatScrollAnchor trackVisibility={isLoading} />
-          </>
-        ) : (
-          <EmptyScreen setInput={setInput} />
-        )}
+        <ChatList messages={messages} />
+        <ChatScrollAnchor trackVisibility={isLoading} />
       </div>
       <ChatPanel
         id={id}
@@ -117,7 +110,13 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             onChange={e => setAssistant_id(e.target.value)}
           />
           <DialogFooter className="items-center">
-            <Button onClick={handleSave}>Save Token</Button>
+            <Button
+              onClick={() => {
+                handleSave()
+              }}
+            >
+              Save Token
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -162,9 +162,7 @@ export function useOpenAi() {
   }
 
   const retrieveMessagesByThread = async () => {
-    const threadMessages = await openai.beta.threads.messages.list(
-      'thread_FKOaDwOo52dtdCPJmvE28x2R'
-    )
+    const threadMessages = await openai.beta.threads.messages.list(thread_id)
     return threadMessages
   }
 
