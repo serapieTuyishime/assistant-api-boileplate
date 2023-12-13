@@ -43,32 +43,24 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     }
   })
 
-  const {
-    onFormSubmit,
-    messages,
-    appendMessage,
-    fetchAssistant,
-    testApiKey,
-    loadMessages
-  } = useOpenAi()
+  const { onFormSubmit, messages, appendMessage, fetchAssistant } = useOpenAi()
 
   const appendResult = async () => {
     await appendMessage({ role: 'assistant', content: input })
   }
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [userInput, setUserInput] = useState('')
   const [assistant_id, setAssistant_id] = useState('')
   const { assistantId } = useLocalStorage()
 
   const handleSave = async () => {
     assistant_id && (await fetchAssistant(assistant_id))
-    userInput && (await testApiKey(userInput))
     setIsDialogOpen(false)
   }
+
   useEffect(() => {
-    if (assistantId) loadMessages()
     setIsDialogOpen(Boolean(!assistantId))
   }, [assistantId])
+
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
