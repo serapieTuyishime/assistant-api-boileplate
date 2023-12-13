@@ -73,6 +73,11 @@ export function useOpenAi() {
     }
   }
 
+  const retrieveMessagesByThread = async () => {
+    const threadMessages = await openai.beta.threads.messages.list(thread_id)
+    return threadMessages
+  }
+
   const loadMessages = async () => {
     const { data } = await retrieveMessagesByThread()
     const theMessage: CustomMessage[] = []
@@ -96,6 +101,7 @@ export function useOpenAi() {
     })
 
     setMessages(theMessage)
+    console.log('message loaded')
   }
 
   const fetchAssistant = useCallback(async (id: string) => {
@@ -132,11 +138,6 @@ export function useOpenAi() {
     setMessages(prev => [...prev, message])
     await openai.beta.threads.messages.create(thread_id, message)
     return
-  }
-
-  const retrieveMessagesByThread = async () => {
-    const threadMessages = await openai.beta.threads.messages.list(thread_id)
-    return threadMessages
   }
 
   const onFormSubmit = async () => {
