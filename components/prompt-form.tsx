@@ -1,5 +1,4 @@
 import { UseChatHelpers } from 'ai/react'
-import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -12,6 +11,8 @@ import {
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
+import { useOpenAi } from '@/lib/hooks/useOpenAi'
+import { useEffect, useRef } from 'react'
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
@@ -26,27 +27,28 @@ export function PromptForm({
   isLoading
 }: PromptProps) {
   const { formRef, onKeyDown } = useEnterSubmit()
-  const inputRef = React.useRef<HTMLTextAreaElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
+  const { appendMessage } = useOpenAi()
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus()
     }
   }, [])
+  const handleSumbit = async (e: any) => {
+    e.preventDefault()
+    if (!input?.trim()) {
+      return
+    }
+    setInput('')
 
+    // TODO : add message here when we append the messages to the thread.
+    await appendMessage({ role: 'user', content: input })
+    await onSubmit(input)
+  }
   return (
-    <form
-      onSubmit={async e => {
-        e.preventDefault()
-        if (!input?.trim()) {
-          return
-        }
-        setInput('')
-        await onSubmit(input)
-      }}
-      ref={formRef}
-    >
+    <form onSubmit={e => handleSumbit(e)} ref={formRef}>
       <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
         <Tooltip>
           <TooltipTrigger asChild>

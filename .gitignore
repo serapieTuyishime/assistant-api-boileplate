@@ -36,3 +36,6 @@ yarn-error.log*
 .env
 .vercel
 .vscode
+
+# My stuff
+.vercel-assistant.2023-11-23.private-key.pem
