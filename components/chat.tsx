@@ -63,9 +63,9 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   }
 
   useEffect(() => {
-    if (assistantId && thread) loadMessages()
+    // if (assistantId && thread) loadMessages()
     setIsDialogOpen(Boolean(!assistantId))
-  }, [assistantId, loadMessages])
+  }, [assistantId, thread])
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
