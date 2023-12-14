@@ -79,6 +79,11 @@ export function useOpenAi() {
     }
   }
 
+  const retrieveMessagesByThread = async () => {
+    const threadMessages = await openai.beta.threads.messages.list(thread_id)
+    return threadMessages
+  }
+
   const loadMessages = async () => {
     if (!currentThread) {
       console.log('There is no thead')
@@ -159,11 +164,6 @@ export function useOpenAi() {
     const data = await openai.beta.threads.messages.create(thread_id, message)
     console.log('data returdedn from appening the messages, data', data)
     return
-  }
-
-  const retrieveMessagesByThread = async () => {
-    const threadMessages = await openai.beta.threads.messages.list(thread_id)
-    return threadMessages
   }
 
   const onFormSubmit = async () => {

@@ -41,7 +41,13 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     }
   })
 
-  const { onFormSubmit, messages, appendMessage, fetchAssistant } = useOpenAi()
+  const {
+    onFormSubmit,
+    messages,
+    appendMessage,
+    fetchAssistant,
+    loadMessages
+  } = useOpenAi()
 
   const appendResult = async () => {
     await appendMessage({ role: 'assistant', content: input })
@@ -67,9 +73,9 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     () => {}
 
   useEffect(() => {
+    if (assistantId !== '') loadMessages()
     setIsDialogOpen(Boolean(!assistantId))
-  }, [assistantId])
-
+  }, [assistantId, loadMessages])
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
@@ -113,6 +119,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             <Button
               onClick={() => {
                 handleSave()
+                loadMessages()
               }}
             >
               Save Token
