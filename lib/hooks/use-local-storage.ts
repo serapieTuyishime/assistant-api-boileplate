@@ -1,38 +1,24 @@
-import * as React from 'react'
-export const useLocalStorage = (): {
-  setValue: (key: string, value: string) => void
-  clearAssistant: () => void
-  getValue: (key: string) => Promise<string>
-  thread: string
-  assistantId: string
-} => {
-  const [thread, setThread] = React.useState('')
-  const [assistantId, setAssistantId] = React.useState('')
-  const setValue = React.useCallback((key: string, value: string) => {
-    window.localStorage.setItem(key, JSON.stringify(value))
-  }, [])
+import { useEffect, useState } from 'react'
 
-  const getValue = async (key: string) => {
-    const value = localStorage.getItem(key)
-    if (!value) return
-    const JsonValue = await JSON.parse(value)
-    return JsonValue
-  }
+export const useLocalStorage = <T>(
+  key: string,
+  initialValue: T
+): [T, (value: T) => void] => {
+  const [storedValue, setStoredValue] = useState(initialValue)
 
-  const clearAssistant = () => {
-    window.localStorage.setItem('the_assistant_id', '')
-    window.localStorage.setItem('the_assistant_thread', '')
-  }
-
-  React.useEffect(() => {
-    const thing = async () => {
-      const assistantId = await getValue('the_assistant_id')
-      const thread = await await getValue('the_assistant_thread')
-      setThread(thread)
-      setAssistantId(assistantId)
+  useEffect(() => {
+    // Retrieve from localStorage
+    const item = window.localStorage.getItem(key)
+    if (item) {
+      setStoredValue(JSON.parse(item))
     }
-    thing()
-  }, [setValue])
+  }, [key])
 
-  return { setValue, clearAssistant, getValue, assistantId, thread }
+  const setValue = (value: T) => {
+    // Save state
+    setStoredValue(value)
+    // Save to localStorage
+    window.localStorage.setItem(key, JSON.stringify(value))
+  }
+  return [storedValue, setValue]
 }
