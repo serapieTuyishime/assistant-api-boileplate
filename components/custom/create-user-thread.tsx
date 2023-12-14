@@ -1,5 +1,6 @@
 'use client'
 
+import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { useOpenAi } from '@/lib/hooks/useOpenAi'
 
 export const CreateThread = () => {
@@ -18,9 +19,9 @@ export const CreateThread = () => {
 }
 
 export const ClearThread = () => {
-  const { clearAll } = useOpenAi()
+  const { clearAssistant } = useLocalStorage()
   return (
-    <span className="" onClick={() => clearAll()}>
+    <span className="" onClick={() => clearAssistant()}>
       Clear current thread
     </span>
   )

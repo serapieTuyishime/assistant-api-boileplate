@@ -20,8 +20,8 @@ export const useLocalStorage = (): {
   }
 
   const clearAssistant = () => {
-    window.localStorage.setItem('the_assistant_id', '')
-    window.localStorage.setItem('the_assistant_thread', '')
+    window.localStorage.removeItem('the_assistant_id')
+    window.localStorage.removeItem('the_assistant_thread')
   }
 
   React.useEffect(() => {

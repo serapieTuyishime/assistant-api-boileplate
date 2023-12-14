@@ -18,7 +18,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { useOpenAi } from '@/lib/hooks/useOpenAi'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
@@ -55,25 +55,15 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [assistant_id, setAssistant_id] = useState('')
   const assistantId = localStorage.getItem('the_assistant_id')
-  console.log(assistantId)
+  const thread = localStorage.getItem('the_assistant_thread')
 
   const handleSave = async () => {
     assistant_id && (await fetchAssistant(assistant_id))
     setIsDialogOpen(false)
   }
 
-  const initPage =
-    /**
-     * 1. Chech for an assistant from local storage if its there then load the assistant and put it on the state of the hook. If no assistant then open the modal and then close.
-     * 2. Modal is done then save the thing on local storage and then hit the process again.  we do it the she-partner way
-     * 3. if there is assistant, then check for the thread on local storage, and hit the retrieve thread from last time and if no thread, create one which will put it on the hook state by default.
-     *
-     * @date 12/13/2023 - 12:00:30 PM
-     */
-    () => {}
-
   useEffect(() => {
-    if (assistantId !== '') loadMessages()
+    if (assistantId && thread) loadMessages()
     setIsDialogOpen(Boolean(!assistantId))
   }, [assistantId, loadMessages])
   return (
