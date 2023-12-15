@@ -4,7 +4,7 @@ import { Assistant } from 'openai/resources/beta/assistants/assistants'
 import { useCallback, useEffect, useState } from 'react'
 import { useLocalStorage } from './use-local-storage'
 import OpenAI from 'openai'
-import { createThread } from '../utils/assistant'
+import { createThread, getValue } from '../utils/assistant'
 
 export type CustomMessage = Message & {
   createdAt: Date
@@ -59,19 +59,18 @@ export function useOpenAi() {
 
   const createRun = async () => {
     const current_id = await getCurrentThread()
+    const assistant_id = await getValue('the_assistant_id')
     setLoading(true)
     try {
-      if (!assistant) {
+      if (!assistant_id) {
         console.log('No assistant found')
         return
       }
       const run = await openai.beta.threads.runs.create(current_id, {
-        assistant_id: assistant.id,
+        assistant_id,
         instructions:
           'Please address the user as Jane Doe. The user has a premium account.'
       })
-      localStorage.setItem('run_id', run.id)
-      // setRun(run.id)
       return run.id
     } catch (Err) {
       console.error('error within run')
@@ -146,7 +145,7 @@ export function useOpenAi() {
     }
 
     if (foundRun.status === 'completed') {
-      // await loadMessages()
+      await loadMessages(current_id)
     } else {
       setTimeout(() => {
         checkRunStatus(run_id)
@@ -154,35 +153,11 @@ export function useOpenAi() {
     }
   }
 
-  const appendMessage = async (message: any) => {
-    // setMessages(prev => [...prev, message])
-    let thread_id = await getCurrentThread()
-    if (!thread_id) {
-      const thread = await createThread()
-      if (!thread) return
-      thread_id = thread.id
-    }
-
-    console.log('appending the message', {
-      message,
-      assistant,
-      thread_id
-    })
-
-    if (!thread_id || !assistant) return
-    const data = await openai.beta.threads.messages.create(thread_id, message)
-    console.log('data returdedn from appening the messages, data', data)
-    return
-  }
-
   const onFormSubmit = async () => {
-    if (!assistant) {
+    const assistant_id = await getValue('the_assistant_id')
+    console.log('old fashioned assitant', assistant)
+    if (!assistant_id) {
       console.log('there is no assistant', assistant)
-      return
-    }
-
-    if (loading) {
-      console.log('there is still a run in progress')
       return
     }
 
@@ -211,7 +186,6 @@ export function useOpenAi() {
     messages,
     assistant,
     loadMessages,
-    appendMessage,
     fetchAssistant,
     testApiKey,
     createThread,

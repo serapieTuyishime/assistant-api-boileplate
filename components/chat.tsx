@@ -19,6 +19,7 @@ import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { useOpenAi } from '@/lib/hooks/useOpenAi'
 import { useCallback, useEffect, useState } from 'react'
+import { appendMessage } from '@/lib/utils/assistant'
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
@@ -41,15 +42,10 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     }
   })
 
-  const {
-    onFormSubmit,
-    messages,
-    appendMessage,
-    fetchAssistant,
-    loadMessages
-  } = useOpenAi()
+  const { onFormSubmit, messages, fetchAssistant, loadMessages } = useOpenAi()
 
   const appendResult = async () => {
+    console.log('appenind the result')
     await appendMessage({ role: 'assistant', content: input })
   }
   const [isDialogOpen, setIsDialogOpen] = useState(false)

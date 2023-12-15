@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { useOpenAi } from '@/lib/hooks/useOpenAi'
 import { useEffect, useRef } from 'react'
+import { appendMessage } from '@/lib/utils/assistant'
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
@@ -29,7 +30,6 @@ export function PromptForm({
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
-  const { appendMessage } = useOpenAi()
 
   useEffect(() => {
     if (inputRef.current) {
