@@ -1,7 +1,6 @@
 import * as React from 'react'
 export const useLocalStorage = (): {
   setValue: (key: string, value: string) => void
-  clearAssistant: () => void
   getValue: (key: string) => Promise<string>
   thread: string
   assistantId: string
@@ -13,15 +12,10 @@ export const useLocalStorage = (): {
   }, [])
 
   const getValue = async (key: string) => {
-    const value = localStorage.getItem(key)
+    const value = window.localStorage.getItem(key)
     if (!value) return
-    const JsonValue = await JSON.parse(value)
+    const JsonValue = await JSON.parse(JSON.stringify(value))
     return JsonValue
-  }
-
-  const clearAssistant = () => {
-    window.localStorage.removeItem('the_assistant_id')
-    window.localStorage.removeItem('the_assistant_thread')
   }
 
   React.useEffect(() => {
@@ -34,5 +28,5 @@ export const useLocalStorage = (): {
     thing()
   }, [setValue])
 
-  return { setValue, clearAssistant, getValue, assistantId, thread }
+  return { setValue, getValue, assistantId, thread }
 }

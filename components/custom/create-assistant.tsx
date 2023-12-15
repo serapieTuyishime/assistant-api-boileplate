@@ -1,8 +1,28 @@
 'use client'
-import { useOpenAi } from '@/lib/hooks/useOpenAi'
+
+import { getAssistantById, getValue } from '@/lib/utils/assistant'
+import { Assistant } from 'openai/resources/beta/assistants/assistants'
+import { useCallback, useEffect, useState } from 'react'
 
 export default function CreateAssistant() {
-  const { assistant } = useOpenAi()
+  const [assistant, setAssistant] = useState<Assistant | null>(null)
+  const loadAssistant = useCallback(async () => {
+    try {
+      const assistantId = await getValue('the_assistant_id')
+      console.log('the found assitant from the locals torage', assistantId)
+      if (assistantId) {
+        const assistant = await getAssistantById(assistantId)
+        if (!assistant) return
+        setAssistant(assistant)
+      }
+    } catch (err) {
+      console.log('error in fetching the assitant')
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!assistant) loadAssistant()
+  }, [assistant, loadAssistant])
   return (
     <>
       {assistant ? (

@@ -17,8 +17,16 @@ import {
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
-import { useOpenAi } from '@/lib/hooks/useOpenAi'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import {
+  appendMessage,
+  checkRunStatus,
+  createRun,
+  createThread,
+  fetchAssistant,
+  loadMessages
+} from '@/lib/utils/assistant'
+import { CustomMessage } from '@/lib/types'
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
@@ -26,7 +34,7 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 }
 
 export function Chat({ id, initialMessages, className }: ChatProps) {
-  const { isLoading, input, setInput } = useChat({
+  const { input, setInput } = useChat({
     initialMessages,
     id,
     body: {
@@ -41,19 +49,14 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     }
   })
 
-  const {
-    onFormSubmit,
-    messages,
-    appendMessage,
-    fetchAssistant,
-    loadMessages
-  } = useOpenAi()
-
   const appendResult = async () => {
+    console.log('appenind the result')
     await appendMessage({ role: 'assistant', content: input })
   }
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [assistant_id, setAssistant_id] = useState('')
+  const [messages, setMessages] = useState<CustomMessage[]>([])
+  const [isLoading, setIsLoading] = useState(false)
   const assistantId = localStorage.getItem('the_assistant_id')
   const thread = localStorage.getItem('the_assistant_thread')
 
@@ -62,10 +65,35 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     setIsDialogOpen(false)
   }
 
+  const fetchMessages = async () => {
+    const newMessages = await loadMessages()
+    setMessages(() => newMessages)
+  }
+
+  const onFormSubmit = async (stuff: CustomMessage) => {
+    if (isLoading) return
+
+    setIsLoading(true)
+    setMessages(prev => [...prev, stuff])
+    await appendMessage({ role: stuff.role, content: stuff.content })
+    const run_id = await createRun()
+    if (run_id) {
+      await checkRunStatus(run_id)
+      await fetchMessages()
+    }
+    setIsLoading(false)
+  }
+
+  const onNewConversation = async () => {
+    await createThread()
+    setMessages([])
+  }
+
   useEffect(() => {
-    // if (assistantId && thread) loadMessages()
+    fetchMessages()
     setIsDialogOpen(Boolean(!assistantId))
-  }, [assistantId, thread])
+  }, [])
+
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
@@ -78,6 +106,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         append={onFormSubmit as any}
         input={input}
         setInput={setInput}
+        onNewConversation={onNewConversation}
       />
       {/* TODO: open the mmodal when there is no api key */}
       <Dialog open={isDialogOpen} onOpenChange={() => setIsDialogOpen(false)}>
@@ -109,7 +138,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             <Button
               onClick={() => {
                 handleSave()
-                loadMessages()
+                // loadMessages()
               }}
             >
               Save Token
