@@ -16,7 +16,6 @@ export function useOpenAi() {
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<CustomMessage[]>([])
   const [assistant, setAssistant] = useState<Assistant | null>()
-  const [currentThread, setCurrentThread] = useState<string>('')
   const [run, setRun] = useState<string>('')
   const { setValue, assistantId, clearAssistant, thread } = useLocalStorage()
 
@@ -59,18 +58,20 @@ export function useOpenAi() {
   }
 
   const createRun = async () => {
+    const current_id = await getCurrentThread()
     setLoading(true)
     try {
       if (!assistant) {
         console.log('No assistant found')
         return
       }
-      const run = await openai.beta.threads.runs.create(currentThread, {
+      const run = await openai.beta.threads.runs.create(current_id, {
         assistant_id: assistant.id,
         instructions:
           'Please address the user as Jane Doe. The user has a premium account.'
       })
-      setRun(run.id)
+      localStorage.setItem('run_id', run.id)
+      // setRun(run.id)
       return run.id
     } catch (Err) {
       console.error('error within run')
@@ -79,18 +80,48 @@ export function useOpenAi() {
     }
   }
 
+  const getRunId = async () => {
+    if (!localStorage.getItem('run_id')) {
+      await createRun()
+    }
+    const run_id = localStorage.getItem('run_id')
+    return run_id
+  }
+
   const retrieveMessagesByThread = async () => {
     const threadMessages = await openai.beta.threads.messages.list(thread_id)
     return threadMessages
   }
 
-  const loadMessages = async () => {
-    if (!currentThread) {
-      console.log('There is no thead')
-      return
+  const createThread = async () => {
+    const newThread = await openai.beta.threads.create()
+    console.log(newThread.id, 'thread')
+    localStorage.setItem('the_assistant_thread', newThread.id)
+    // if (newThread) {
+    //   setCurrentThread(newThread.id as string)
+    //   setValue('the_assistant_thread', newThread.id as string)
+    //   console.log('thread created', currentThread)
+
+    //   return newThread
+    // } else {
+    //   console.log('thread not created')
+
+    //   return
+    // }
+
+    return newThread
+  }
+
+  const getCurrentThread = async () => {
+    if (!localStorage.getItem('the_assistant_thread')) {
+      await createThread()
     }
+    const id = localStorage.getItem('the_assistant_thread')
+    return id as string
+  }
+
+  const loadMessages = async () => {
     const { data } = await retrieveMessagesByThread()
-    console.log('the messages on', data)
     const theMessage: CustomMessage[] = []
     data.forEach(({ content, role, id, created_at }) => {
       content.forEach((contentItem: any) => {
@@ -127,9 +158,10 @@ export function useOpenAi() {
   }, [])
 
   const checkRunStatus = async (run_id: string) => {
+    const current_id = await getCurrentThread()
     let foundRun
     try {
-      foundRun = await openai.beta.threads.runs.retrieve(currentThread, run_id)
+      foundRun = await openai.beta.threads.runs.retrieve(current_id, run_id)
     } catch (err) {
       console.warn('Error within retrieving the run', err)
       return
@@ -146,8 +178,8 @@ export function useOpenAi() {
 
   const appendMessage = async (message: any) => {
     // setMessages(prev => [...prev, message])
-    let thread_id = currentThread
-    if (!currentThread) {
+    let thread_id = await getCurrentThread()
+    if (!thread_id) {
       const thread = await createThread()
       if (!thread) return
       thread_id = thread.id
@@ -155,7 +187,6 @@ export function useOpenAi() {
 
     console.log('appending the message', {
       message,
-      currentThread,
       assistant,
       thread_id
     })
@@ -182,16 +213,6 @@ export function useOpenAi() {
     if (run_id) await checkRunStatus(run_id as string)
   }
 
-  const createThread = async () => {
-    const newThread = await openai.beta.threads.create()
-    if (newThread) {
-      setCurrentThread(newThread.id)
-      setValue('the_assistant_thread', newThread.id)
-      return newThread
-    } else {
-      return
-    }
-  }
   const clearAll = useCallback(() => {
     setAssistant(null)
     clearAssistant()
