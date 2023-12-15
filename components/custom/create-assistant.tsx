@@ -1,12 +1,10 @@
 'use client'
-import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { useOpenAi } from '@/lib/hooks/useOpenAi'
-import { getAssistantById } from '@/lib/utils/assistant'
+
+import { getAssistantById, getValue } from '@/lib/utils/assistant'
 import { Assistant } from 'openai/resources/beta/assistants/assistants'
 import { useCallback, useEffect, useState } from 'react'
 
 export default function CreateAssistant() {
-  const { getValue } = useLocalStorage()
   const [assistant, setAssistant] = useState<Assistant | null>(null)
   const loadAssistant = useCallback(async () => {
     try {

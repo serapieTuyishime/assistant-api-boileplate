@@ -42,9 +42,6 @@ export function PromptForm({
       return
     }
     setInput('')
-
-    // TODO : add message here when we append the messages to the thread.
-    await appendMessage({ role: 'user', content: input })
     await onSubmit(input)
   }
   return (

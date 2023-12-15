@@ -3,7 +3,7 @@ import { Sidebar } from '@/components/sidebar'
 import { IconSeparator } from '@/components/ui/icons'
 import CreateAssistant from './custom/create-assistant'
 import { Suspense } from 'react'
-import { ClearThread, CreateThread } from './custom/create-user-thread'
+import { ClearThread } from './custom/create-user-thread'
 
 export async function Header() {
   return (
@@ -13,9 +13,6 @@ export async function Header() {
           <Suspense
             fallback={<div className="flex-1 overflow-auto" />}
           ></Suspense>
-          <Button variant="link" asChild className="-ml-2">
-            <CreateThread />
-          </Button>
           <Button variant="link" asChild className="-ml-2">
             <ClearThread />
           </Button>
