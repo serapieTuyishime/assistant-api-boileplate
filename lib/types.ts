@@ -16,3 +16,7 @@ export type ServerActionResult<Result> = Promise<
       error: string
     }
 >
+
+export type CustomMessage = Message & {
+  createdAt: Date
+}

@@ -13,9 +13,9 @@ export const useLocalStorage = (): {
   }, [])
 
   const getValue = async (key: string) => {
-    const value = localStorage.getItem(key)
+    const value = window.localStorage.getItem(key)
     if (!value) return
-    const JsonValue = await JSON.parse(value)
+    const JsonValue = await JSON.parse(JSON.stringify(value))
     return JsonValue
   }
 

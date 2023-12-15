@@ -4,6 +4,7 @@ import { Assistant } from 'openai/resources/beta/assistants/assistants'
 import { useCallback, useEffect, useState } from 'react'
 import { useLocalStorage } from './use-local-storage'
 import OpenAI from 'openai'
+import { createThread } from '../utils/assistant'
 
 export type CustomMessage = Message & {
   createdAt: Date
@@ -12,17 +13,16 @@ export type CustomMessage = Message & {
 const thread_id = 'thread_eznxPsCmoTeOKfALK8YgJHG8'
 const apiKey = '------YOUR OPENAI KEY HERE---------'
 
+export const openai = new OpenAI({
+  apiKey: process.env.NEXT_PUBLIC_API_KEY,
+  dangerouslyAllowBrowser: true
+})
+
 export function useOpenAi() {
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<CustomMessage[]>([])
   const [assistant, setAssistant] = useState<Assistant | null>()
-  const [run, setRun] = useState<string>('')
-  const { setValue, assistantId, clearAssistant, thread } = useLocalStorage()
-
-  const openai = new OpenAI({
-    apiKey: process.env.NEXT_PUBLIC_API_KEY,
-    dangerouslyAllowBrowser: true
-  })
+  const { setValue, assistantId, clearAssistant } = useLocalStorage()
 
   const testApiKey = async (apiKey: string) => {
     const url = 'https://api.openai.com/v1/chat/completions'
@@ -88,30 +88,6 @@ export function useOpenAi() {
     return run_id
   }
 
-  const retrieveMessagesByThread = async () => {
-    const threadMessages = await openai.beta.threads.messages.list(thread_id)
-    return threadMessages
-  }
-
-  const createThread = async () => {
-    const newThread = await openai.beta.threads.create()
-    console.log(newThread.id, 'thread')
-    localStorage.setItem('the_assistant_thread', newThread.id)
-    // if (newThread) {
-    //   setCurrentThread(newThread.id as string)
-    //   setValue('the_assistant_thread', newThread.id as string)
-    //   console.log('thread created', currentThread)
-
-    //   return newThread
-    // } else {
-    //   console.log('thread not created')
-
-    //   return
-    // }
-
-    return newThread
-  }
-
   const getCurrentThread = async () => {
     if (!localStorage.getItem('the_assistant_thread')) {
       await createThread()
@@ -120,8 +96,10 @@ export function useOpenAi() {
     return id as string
   }
 
-  const loadMessages = async () => {
-    const { data } = await retrieveMessagesByThread()
+  const loadMessages = async (thread_id: string) => {
+    // retrieve messgages by the thread passed
+
+    const { data } = await openai.beta.threads.messages.list(thread_id)
     const theMessage: CustomMessage[] = []
     data.forEach(({ content, role, id, created_at }) => {
       content.forEach((contentItem: any) => {
@@ -168,7 +146,7 @@ export function useOpenAi() {
     }
 
     if (foundRun.status === 'completed') {
-      await loadMessages()
+      // await loadMessages()
     } else {
       setTimeout(() => {
         checkRunStatus(run_id)
@@ -219,12 +197,13 @@ export function useOpenAi() {
   }, [])
 
   const loadAssistant = async () => {
-    await loadMessages()
+    console.log('rendering again here')
+    // await loadMessages()
     await fetchAssistant(assistantId)
   }
 
   useEffect(() => {
-    if (assistantId && !assistant) loadAssistant()
+    // if (assistantId && !assistant) loadAssistant()
   }, [assistantId, assistant])
   return {
     loading,
@@ -234,7 +213,6 @@ export function useOpenAi() {
     loadMessages,
     appendMessage,
     fetchAssistant,
-    retrieveMessagesByThread,
     testApiKey,
     createThread,
     clearAll

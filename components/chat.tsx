@@ -109,7 +109,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             <Button
               onClick={() => {
                 handleSave()
-                loadMessages()
+                // loadMessages()
               }}
             >
               Save Token
