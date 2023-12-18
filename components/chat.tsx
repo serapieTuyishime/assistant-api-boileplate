@@ -6,16 +6,6 @@ import { cn } from '@/lib/utils'
 import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { ChatScrollAnchor } from '@/components/chat-scroll-anchor'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
-import { Button } from './ui/button'
-import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { useEffect, useState } from 'react'
 import {
@@ -55,11 +45,10 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     await appendMessage({ role: 'assistant', content: input })
   }
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [assistant_id, setAssistant_id] = useState('')
+  const assistant_id = process.env.NEXT_PUBLIC_ASSISTANT_ID
   const [messages, setMessages] = useState<CustomMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const assistantId = localStorage.getItem('the_assistant_id')
-  const thread = localStorage.getItem('the_assistant_thread')
 
   const handleSave = async () => {
     assistant_id && (await fetchAssistant(assistant_id))
@@ -115,44 +104,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         setInput={setInput}
         onNewConversation={onNewConversation}
       />
-      {/* TODO: open the mmodal when there is no api key */}
-      <Dialog open={isDialogOpen} onOpenChange={() => setIsDialogOpen(false)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Enter your OpenAI Key</DialogTitle>
-            <DialogDescription>
-              If you have not obtained your OpenAI API key, you can do so by{' '}
-              <a
-                href="https://platform.openai.com/signup/"
-                className="underline"
-              >
-                signing up
-              </a>{' '}
-              on the OpenAI website. This is only necessary for preview
-              environments so that the open source community can test the app.
-              The token will be saved to your browser&apos;s local storage under
-              the name <code className="font-mono">ai-token</code>.
-              asst_3Jol7xISnUlSRV1sFe5NFnuL ---
-            </DialogDescription>
-          </DialogHeader>
-
-          <Input
-            value={assistant_id}
-            placeholder="OpenAI assistant id"
-            onChange={e => setAssistant_id(e.target.value)}
-          />
-          <DialogFooter className="items-center">
-            <Button
-              onClick={() => {
-                handleSave()
-                // loadMessages()
-              }}
-            >
-              Save Token
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }
