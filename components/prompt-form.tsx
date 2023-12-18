@@ -11,7 +11,6 @@ import {
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
-import { useOpenAi } from '@/lib/hooks/useOpenAi'
 import { useEffect, useRef } from 'react'
 import { appendMessage } from '@/lib/utils/assistant'
 
