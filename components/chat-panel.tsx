@@ -22,8 +22,8 @@ export function ChatPanel({
   return (
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
       <ButtonScrollToBottom />
-      <div className="mx-auto sm:max-w-2xl sm:px-4 relative">
-        <div className="flex h-10 items-center justify-center gap-3">
+      <div className="relative mx-auto sm:max-w-2xl sm:px-4">
+        <div className="flex h-10 justify-center gap-3">
           {isLoading && (
             <Button
               variant="outline"
@@ -31,13 +31,13 @@ export function ChatPanel({
               className="bg-background"
             >
               <IconStop className="mr-2" />
-              Stop generating
+              message generating
             </Button>
           )}
           <Button
             variant="outline"
             onClick={() => onNewConversation()}
-            className="bg-white text-black absolute top-0 right-0"
+            className="absolute right-4 bg-white text-black"
           >
             <IconEdit className="mr-2" />
             New chat
