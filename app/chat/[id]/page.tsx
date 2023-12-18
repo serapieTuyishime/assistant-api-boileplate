@@ -1,11 +1,9 @@
 import { type Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 
-import { auth } from '@/auth'
 import { getChat } from '@/app/actions'
 import { Chat } from '@/components/chat'
 
-export const runtime = 'edge'
 export const preferredRegion = 'home'
 
 export interface ChatPageProps {
