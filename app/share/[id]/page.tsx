@@ -5,7 +5,6 @@ import { formatDate } from '@/lib/utils'
 import { getSharedChat } from '@/app/actions'
 import { ChatList } from '@/components/chat-list'
 
-export const runtime = 'edge'
 export const preferredRegion = 'home'
 
 interface SharePageProps {
