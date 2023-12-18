@@ -27,6 +27,7 @@ import {
   loadMessages
 } from '@/lib/utils/assistant'
 import { CustomMessage } from '@/lib/types'
+import { EmptyScreen } from './empty-screen'
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
@@ -97,8 +98,14 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
-        <ChatList messages={messages} />
-        <ChatScrollAnchor trackVisibility={isLoading} />
+        {messages.length ? (
+          <>
+            <ChatList messages={messages} />
+            <ChatScrollAnchor trackVisibility={isLoading} />
+          </>
+        ) : (
+          <EmptyScreen setInput={setInput} />
+        )}
       </div>
       <ChatPanel
         id={id}
