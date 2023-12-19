@@ -6,6 +6,8 @@ export const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 })
 
+export const assistant_id = process.env.NEXT_PUBLIC_ASSISTANT_ID
+
 export const getValue = async (key: string): Promise<string> => {
   const value = window.localStorage.getItem(key)
   if (!value) return ''
@@ -15,7 +17,6 @@ export const getValue = async (key: string): Promise<string> => {
 export const fetchAssistant = async (id: string): Promise<boolean> => {
   try {
     const assistant = await openai.beta.assistants.retrieve(id)
-    localStorage.setItem('the_assistant_id', assistant.id)
     return Boolean(assistant)
   } catch (err) {
     return false
@@ -32,7 +33,6 @@ export const getAssistantById = async (assistant_id: string) => {
   try {
     const assistant = await openai.beta.assistants.retrieve(assistant_id)
     if (!assistant) return
-    localStorage.setItem('the_assistant_id', assistant.id)
     return assistant
   } catch (err) {
     return
@@ -40,7 +40,6 @@ export const getAssistantById = async (assistant_id: string) => {
 }
 
 export const appendMessage = async (message: any) => {
-  const assistant_id = await getValue('the_assistant_id')
   let thread_id = await getValue('the_assistant_thread')
   if (!thread_id) {
     const thread = await createThread()
@@ -56,7 +55,6 @@ export const appendMessage = async (message: any) => {
 
 export const createRun = async () => {
   const thread_id = await getValue('the_assistant_thread')
-  const assistant_id = await getValue('the_assistant_id')
   try {
     if (!assistant_id) {
       console.log('No assistant found')
@@ -75,7 +73,10 @@ export const createRun = async () => {
 
 export const loadMessages = async () => {
   // retrieve messgages by the thread passed
-  const thread_id = await getValue('the_assistant_thread')
+  let thread_id = await getValue('the_assistant_thread')
+  if (!thread_id) {
+    thread_id = await (await createThread()).id
+  }
   const { data } = await openai.beta.threads.messages.list(thread_id)
   const theMessage: CustomMessage[] = []
   data.forEach(({ content, role, id, created_at }) => {
@@ -118,18 +119,3 @@ export const checkRunStatus = async (run_id: string): Promise<boolean> => {
     return await checkRunStatus(run_id)
   }
 }
-
-// export const loadMessages = async (thread_id: string) => {
-//   const { data } = await openai.beta.threads.messages.list(thread_id)
-//   const theMessage: CustomMessage[] = []
-//   data.forEach(({ content, role, id, created_at }) => {
-//     content.forEach((contentItem: any) => {
-//       theMessage.push({
-//         content: contentItem?.text.value,
-//         role,
-//         id,
-//         createdAt: new Date(created_at * 1000)
-//       })
-//     })
-//   })
-// }

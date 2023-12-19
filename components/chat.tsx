@@ -44,16 +44,9 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     console.log('appenind the result')
     await appendMessage({ role: 'assistant', content: input })
   }
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const assistant_id = process.env.NEXT_PUBLIC_ASSISTANT_ID
+
   const [messages, setMessages] = useState<CustomMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const assistantId = localStorage.getItem('the_assistant_id')
-
-  const handleSave = async () => {
-    assistant_id && (await fetchAssistant(assistant_id))
-    setIsDialogOpen(false)
-  }
 
   const fetchMessages = async () => {
     const newMessages = await loadMessages()
@@ -81,7 +74,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
 
   useEffect(() => {
     fetchMessages()
-    setIsDialogOpen(Boolean(!assistantId))
   }, [])
 
   return (
