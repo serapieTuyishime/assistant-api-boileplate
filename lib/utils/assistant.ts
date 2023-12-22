@@ -61,9 +61,7 @@ export const createRun = async () => {
       return
     }
     const run = await openai.beta.threads.runs.create(thread_id, {
-      assistant_id,
-      instructions:
-        'Please address the user as Jane Doe. The user has a premium account.'
+      assistant_id
     })
     return run.id
   } catch (Err) {
